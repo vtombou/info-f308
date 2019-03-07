@@ -16,15 +16,15 @@ class GUI:
 		layout.addWidget(self.PECanvas)
 		layout.addWidget(self.chrisCanvas)
 		layout.addLayout(self.settingsBox)
-
 		self.window.setLayout(layout)
 		self.window.show()
 
 		self.app.exec_()
 
+
 	def initWidgets(self):
-		self.PECanvas = GraphCanvas(self.width/4,self.height)
-		self.chrisCanvas = GraphCanvas(self.width/4,self.height)
+		self.PECanvas = GraphCanvas(self.width/2.4,self.height)
+		self.chrisCanvas = GraphCanvas(self.width/2.4,self.height)
 
 		self.createGraphGroupBox()
 		self.createSolverGroupBox()
@@ -48,11 +48,15 @@ class GUI:
 	def createGraphGroupBox(self):
 		self.graphGroupBox = QGroupBox("Graphe")
 		createGraphBtn = QPushButton("Créer le graphe")
-		graphSizeCB = QComboBox()
+		self.graphSizeCB = QComboBox()
+		self.graphSizeCB.addItems(["3","4","5"])
+
+		createGraphBtn.clicked.connect(self.onCreateGraphBtnClicked)
+
 
 		layout = QVBoxLayout()
 		layout.setSpacing(5)
-		layout.addWidget(graphSizeCB)
+		layout.addWidget(self.graphSizeCB)
 		layout.addWidget(createGraphBtn)
 		layout.addStretch(1)
 		self.graphGroupBox.setLayout(layout)
@@ -66,6 +70,12 @@ class GUI:
 
 		self.settingsBox.addWidget(self.graphGroupBox)
 		self.settingsBox.addWidget(self.solverGroupBox)
+
+	def onCreateGraphBtnClicked(self):
+		graphSize = int(self.graphSizeCB.currentText())
+		self.chrisCanvas.drawGraph(graphSize)
+		self.PECanvas.drawGraph(graphSize)
+
 
 
 
