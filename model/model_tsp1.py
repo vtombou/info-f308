@@ -1,11 +1,11 @@
-# abstract1.py
+#model_tsp1.py
 from __future__ import division
 from pyomo.environ import *
 
 #Définition d'un model Abstract de donné
 model = AbstractModel()
 
-#définition d'un parametre n appartenant a l'ensemble des entiers naturel non null 
+#définition n entiers naturel non null 
 model.n = Param(within=NonNegativeIntegers)
 
 #définition des ensemble I et J pris dans {1 ..n}
@@ -16,7 +16,7 @@ model.J = RangeSet(1, model.n)
 model.c = Param(model.I, model.J)
 
 # definition des la variable x d'indice i,j
-model.x = Var(model.J, model.J, domain=Binary)
+model.x = Var(model.I, model.J, domain=Binary)
 
 #Fonction objective
 def obj_expression(model):
@@ -34,7 +34,7 @@ def ax_constraint_rule2(model, i):
     return sum( model.x[i, j] for j in model.J) == 1
 
 #Contrainte sur i
-model.AxbConstraint = Constraint(model.I, rule=ax_constraint_rule1)
+model.AxbConstraint1 = Constraint(model.I, rule=ax_constraint_rule1)
 
 #Contrainte sur j
-model.AxbConstraint = Constraint(model.I, rule=ax_constraint_rule2)
+model.AxbConstraint2 = Constraint(model.I, rule=ax_constraint_rule2)
