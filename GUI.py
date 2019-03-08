@@ -1,8 +1,11 @@
 from PyQt5.QtWidgets import *
 from graphCanvas import GraphCanvas
+# from controller import *
 
 class GUI:
-	def __init__(self):
+	def __init__(self,controller):
+		self.controller = controller
+		self.setController()
 		self.app = QApplication([])
 		screenResolution = self.app.desktop().screenGeometry()
 		self.width, self.height = screenResolution.width(), screenResolution.height()
@@ -21,6 +24,8 @@ class GUI:
 
 		self.app.exec_()
 
+	def setController(self):
+		self.controller.setGUI(self)
 
 	def initWidgets(self):
 		self.PECanvas = GraphCanvas(self.width/2.4,self.height)
@@ -49,7 +54,7 @@ class GUI:
 		self.graphGroupBox = QGroupBox("Graphe")
 		createGraphBtn = QPushButton("Créer le graphe")
 		self.graphSizeCB = QComboBox()
-		self.graphSizeCB.addItems(["3","4","5"])
+		self.graphSizeCB.addItems(["3","4","5","10"])
 
 		createGraphBtn.clicked.connect(self.onCreateGraphBtnClicked)
 
@@ -66,15 +71,14 @@ class GUI:
 		self.settingsBox = QVBoxLayout()
 
 		self.settingsBox.setSpacing(2)
-		# self.settingsBox.setMargin(2)
-
 		self.settingsBox.addWidget(self.graphGroupBox)
 		self.settingsBox.addWidget(self.solverGroupBox)
 
 	def onCreateGraphBtnClicked(self):
 		graphSize = int(self.graphSizeCB.currentText())
-		self.chrisCanvas.drawGraph(graphSize)
+		verticesCoords = self.chrisCanvas.drawGraph(graphSize)
 		self.PECanvas.drawGraph(graphSize)
+		self.controller.updateTSPGraph(verticesCoords)
 
 
 
