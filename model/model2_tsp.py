@@ -13,9 +13,9 @@ model.Arcs = Set(within = model.Nodes * model.Nodes)
 
 #Fonction qui retourne l'ensemble des aretes incident a V ( Conv V )
 def ConvV_init(model, V):
-    return [ E for E in model.Arcs if (V in E )for V in model.Nodes ]
+    return [ E for E in model.Arcs if V in E  ]
 #Définition convV
-model.ConvV = Set(initialize = ConvV_init)
+model.ConvV = Set(model.Arcs, initialize = ConvV_init)
 
 #définition parametre C 
 model.C = Param(model.Arcs)
