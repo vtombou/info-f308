@@ -29,7 +29,7 @@ def obj_expression(model):
 model.OBJ = Objective(rule=obj_expression)
 
 #Définition de Contrainte
-def ax_constraint_rule(model, E):
+def ax_constraint_rule(model):
     # return the expression for the constraint for i
     return sum( model.X[E] for E in model.ConvV) == 2
 model.AxbConstraint = Constraint(model.Arcs, rule=ax_constraint_rule)
