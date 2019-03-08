@@ -1,0 +1,15 @@
+# Isinglecomm.dat: data for Isinglecomm.py
+
+set Nodes := CityA CityB CityC ;
+
+set Arcs :=
+CityA CityB
+CityA CityC
+CityC CityB
+;
+
+param : C :=
+CityA CityB 1.4
+CityA CityC 2.7
+CityC CityB 1.6
+;
