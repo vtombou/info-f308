@@ -17,6 +17,7 @@ class GraphCanvas(QGraphicsView):
 		blackPen = QPen(Qt.black)
 		blackPen.setWidth(3)
 		vertices = []
+		self.verticesNb =verticesNb
 
 		for i in range(verticesNb):
 			y = (self.height/10+self.width/2)-sin(radians(i*360/verticesNb))*(self.width/2-20)
@@ -31,4 +32,16 @@ class GraphCanvas(QGraphicsView):
 		self.scene.update()
 		return vertices
 
-##	def drawStep(self,edges):
+	def drawStep(self,edges):
+		self.scene.clear()
+		blackPen = QPen(Qt.black)
+		blackPen.setWidth(3)
+
+		for i in range(self.verticesNb):
+			y = (self.height/10+self.width/2)-sin(radians(i*360/self.verticesNb))*(self.width/2-20)
+			x = self.width/2 + cos(radians(i*360/self.verticesNb))*(self.width/2-20)
+			ellipse = self.scene.addEllipse(x-15,y-15,30,30,blackPen)
+		for e in edges:
+			self.scene.addLine(e[0][0],e[0][1],e[1][0],e[1][1])
+
+		self.scene.update()

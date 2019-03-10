@@ -5,7 +5,8 @@ from graphCanvas import GraphCanvas
 class GUI:
 	def __init__(self,controller):
 		self.controller = controller
-		self.setController()
+		self.controller.setGUI(self)
+
 		self.app = QApplication([])
 		screenResolution = self.app.desktop().screenGeometry()
 		self.width, self.height = screenResolution.width(), screenResolution.height()
@@ -24,9 +25,6 @@ class GUI:
 
 		self.app.exec_()
 
-	def setController(self):
-		self.controller.setGUI(self)
-
 	def initWidgets(self):
 		self.PECanvas = GraphCanvas(self.width/2.4,self.height)
 		self.chrisCanvas = GraphCanvas(self.width/2.4,self.height)
@@ -41,6 +39,8 @@ class GUI:
 		nextStepBtnCh = QPushButton("Etape suivante christophides")
 		nextStepBtnPE = QPushButton("Etape suivante PE")
 		runComplete = QPushButton("Run")
+
+		nextStepBtnPE.clicked.connect(self.onNextStepPEClicked)
 
 		layout = QVBoxLayout()
 		layout.addWidget(nextStepBtnCh)
@@ -79,6 +79,13 @@ class GUI:
 		verticesCoords = self.chrisCanvas.drawGraph(graphSize)
 		self.PECanvas.drawGraph(graphSize)
 		self.controller.updateTSPGraph(verticesCoords)
+
+	def onNextStepPEClicked(self):
+		self.controller.solveInstance()
+
+	def updatePE(self,usedEdges):
+		self.PECanvas.drawStep(usedEdges)
+
 
 
 
