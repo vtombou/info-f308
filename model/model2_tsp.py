@@ -13,21 +13,23 @@ model = AbstractModel()
 #Ensemble de noeuds
 model.Nodes = Set()
 
+model.V = Set(within = model.Nodes)
+
 #Ensemble d'Arcs
 model.Arcs = Set(within = model.Nodes * model.Nodes)
 
 #Fonction qui retourne l'ensemble des aretes incident a V ( Conv V )
-def ConvV_init(model, V):
-    return [ E for E in model.Arcs if V in E  ]
+def ConvV_init(model):
+    for V in model.Nodes :
+        return ( E for E in model.Arcs if V in E )
 #Définition convV
 model.ConvV = Set(model.Nodes, initialize = ConvV_init,within= model.Nodes*model.Nodes)
-
 
 #définition parametre C 
 model.C = Param(model.Arcs)
 
 #definition x
-model.X = Var(model.Arcs, domain=Binary)
+model.X = Var(model.Arcs, domain=Binary )
 
 data = {None:{
 	"Nodes": {None: ["A","B","C","D"]},
