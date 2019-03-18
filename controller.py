@@ -1,5 +1,6 @@
 from TSP import TSP
 from GUI import GUI
+import queue
 class Controller:
 
 	def setGUI(self,GUI):
@@ -21,7 +22,14 @@ class Controller:
 		self.GUI.colorSubTours(subTours)
 
 	def solveInstance(self,step):
-		self.peSolver.launchThread(self.TSP,step)
+		mainQueue = queue.Queue()
+		self.peSolver.launchThread(self.TSP,mainQueue,step)
+		items = mainQueue.get()
+		fct = items[0]
+		args = items[1:]
+		print(fct)
+		print(args)
+		eval(fct+"(*args)")
 
 	def updateView(self,usedEdges,color = "black"):
 		self.GUI.updatePE(usedEdges,color)

@@ -50,7 +50,7 @@ class PESolver:
 		self.model = model
 		pyutilib.subprocess.GlobalData.DEFINE_SIGNAL_HANDLERS_DEFAULT = False
 
-	def solveInstance(self,tsp,step = False):
+	def solveInstance(self,tsp,mainQueue,step = False,):
 		finished = False
 		data = self.formatTspData(tsp)
 		i= self.model.create_instance(data)
@@ -60,7 +60,8 @@ class PESolver:
 			compCon = self.detectSubTours(usedSubGraph)
 			if len(compCon) > 1:
 				compConCoords = self.translateCompConToCoords(compCon,tsp.getVertices())
-				self.controller.colorSubTours(compConCoords)
+				mainQueue.put(("self.colorSubTours",compConCoords))
+				#self.controller.colorSubTours(compConCoords)
 				if step:
 					# t = Thread(target = self.waitForNextStep)
 					# t.start()
@@ -70,7 +71,8 @@ class PESolver:
 					print("Yeeeey")
 			else:
 				finished = True
-				self.controller.updateView(usedEdgesCoords,"green")
+				#self.controller.updateView(usedEdgesCoords,"green")
+				mainQueue.put(("self.updateView",usedEdgesCoords,"green"))
 
 
 
@@ -145,9 +147,9 @@ class PESolver:
 				i[j] = verticesCoords[i[j]]
 		return compCon
 
-	def launchThread(self,tsp,step):
+	def launchThread(self,tsp,mainQueue,step):
 		try:
-			t = Thread(target = self.solveInstance, args=(tsp,step))
+			t = Thread(target = self.solveInstance, args=(tsp,mainQueue,step))
 			print("hey")
 			t.start()
 		except:
