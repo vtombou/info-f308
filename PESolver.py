@@ -4,6 +4,7 @@ from pyomo.opt import SolverFactory
 from threading import Thread
 from time import sleep
 import pyutilib.subprocess.GlobalData
+from copy import deepcopy
 import pprint
 class PESolver:
 
@@ -37,6 +38,8 @@ class PESolver:
 		#definition x
 		model.X = Var(model.Arcs, domain=Binary )
 
+		model.c = ConstraintList()
+
 		def obj_expression(model):
 			return summation( model.C, model.X )
 		model.OBJ = Objective(rule=obj_expression)
@@ -50,25 +53,27 @@ class PESolver:
 		self.model = model
 		pyutilib.subprocess.GlobalData.DEFINE_SIGNAL_HANDLERS_DEFAULT = False
 
-	def solveInstance(self,tsp,mainQueue,step = False,):
+
+
+
+	def solveInstance(self,tsp,mainQueue,step = False):
 		finished = False
 		data = self.formatTspData(tsp)
-		i= self.model.create_instance(data)
+		self.i= self.model.create_instance(data)
 		while not finished:
-			results = self.opt.solve(i)
-			usedEdgesCoords,usedSubGraph = self.findUsedEdges(tsp,i)
+			results = self.opt.solve(self.i)
+			usedEdgesCoords,usedSubGraph = self.findUsedEdges(tsp,self.i)
 			compCon = self.detectSubTours(usedSubGraph)
 			if len(compCon) > 1:
 				compConCoords = self.translateCompConToCoords(compCon,tsp.getVertices())
 				mainQueue.put(("self.colorSubTours",compConCoords))
 				#self.controller.colorSubTours(compConCoords)
 				if step:
-					# t = Thread(target = self.waitForNextStep)
-					# t.start()
 					self.waitingForNextStep = True
 					while self.waitingForNextStep:
 						sleep(0.3)
-					print("Yeeeey")
+				self.cutSolution(compCon)
+
 			else:
 				finished = True
 				#self.controller.updateView(usedEdgesCoords,"green")
@@ -95,6 +100,23 @@ class PESolver:
 				"C" : C,
 		}}
 		return data
+
+	def cutSolution(self,compCon):
+		for comp in compCon:
+			expr = 0
+			comp.sort()
+			for i in range(len(comp)):
+				for j in range(i+1,len(comp)):
+					print("("+str(comp[i])+","+str(comp[j])+")")
+					expr+= self.i.X[(str(comp[i]),str(comp[j]))]
+			self.i.c.add(expr <= len(comp)-1)
+
+
+
+
+
+
+
 
 	def findUsedEdges(self,tsp,instance):
 		vertices = tsp.getVertices()
@@ -129,23 +151,26 @@ class PESolver:
 
 	def explore(self,k,subGraph,val,inval,ind):
 		ind +=1
-		print("k: "+str(k))
-		print("indice: "+ str(ind))
+		# print("k: "+str(k))
+		# print("indice: "+ str(ind))
 		val[k] = ind
 		inval.append(k)
-		#inval[ind-1] = k
-		print("val: " + str(val))
-		print("inval: "+str(inval))
+		# #inval[ind-1] = k
+		# print("val: " + str(val))
+		# print("inval: "+str(inval))
 		for adj in subGraph[k]:
 			if (val[adj] == 0):
 				val,inval,ind = self.explore(adj,subGraph,val,inval,ind)
 		return val,inval,ind
 
 	def translateCompConToCoords(self,compCon,verticesCoords):
-		for i in compCon:
-			for j in range(len(i)):
-				i[j] = verticesCoords[i[j]]
-		return compCon
+		compsConsCoords = []
+		for i in range(len(compCon)):
+			compConCoords = []
+			for j in range(len(compCon[i])):
+				compConCoords.append(verticesCoords[compCon[i][j]])
+			compsConsCoords.append(compConCoords)
+		return compsConsCoords
 
 	def launchThread(self,tsp,mainQueue,step):
 		try:

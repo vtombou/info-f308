@@ -22,13 +22,11 @@ class Controller:
 		self.GUI.colorSubTours(subTours)
 
 	def solveInstance(self,step):
-		mainQueue = queue.Queue()
-		self.peSolver.launchThread(self.TSP,mainQueue,step)
-		items = mainQueue.get()
+		self.mainQueue = queue.Queue()
+		self.peSolver.launchThread(self.TSP,self.mainQueue,step)
+		items = self.mainQueue.get()
 		fct = items[0]
 		args = items[1:]
-		print(fct)
-		print(args)
 		eval(fct+"(*args)")
 
 	def updateView(self,usedEdges,color = "black"):
@@ -36,3 +34,7 @@ class Controller:
 
 	def unblockSolver(self):
 		self.peSolver.unblock()
+		items = self.mainQueue.get()
+		fct = items[0]
+		args = items[1:]
+		eval(fct + "(*args)")
