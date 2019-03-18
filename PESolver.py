@@ -1,6 +1,9 @@
 from __future__ import division
 from pyomo.environ import *
 from pyomo.opt import SolverFactory
+from threading import Thread
+from time import sleep
+import pyutilib.subprocess.GlobalData
 import pprint
 class PESolver:
 
@@ -24,7 +27,7 @@ class PESolver:
 
 		#Fonction qui retourne l'ensemble des aretes incident a V ( Conv V )
 		def ConvV_init(model,V):
-		        return ( E for E in model.Arcs if V in E )
+			return ( E for E in model.Arcs if V in E )
 		#Définition convV
 		model.ConvV = Set(model.Nodes, initialize = ConvV_init,within= model.Nodes*model.Nodes)
 
@@ -35,7 +38,7 @@ class PESolver:
 		model.X = Var(model.Arcs, domain=Binary )
 
 		def obj_expression(model):
-		    return summation( model.C, model.X )
+			return summation( model.C, model.X )
 		model.OBJ = Objective(rule=obj_expression)
 
 		#Définition de Contrainte
@@ -45,18 +48,32 @@ class PESolver:
 		model.AxbConstraint = Constraint( model.Nodes,rule=ax_constraint_rule)
 
 		self.model = model
+		pyutilib.subprocess.GlobalData.DEFINE_SIGNAL_HANDLERS_DEFAULT = False
 
 	def solveInstance(self,tsp,step = False):
+		finished = False
 		data = self.formatTspData(tsp)
-		# data = {None:{
-		# 		"Nodes": {None: [str(i) for i in range(size)]},
-		# 		"Arcs": {None: [("A","B"),("A","C"),("B","C"),("A","D"),("B","D"),("C","D")]},
-		# 		"C": {("A","B"): 1.4, ("A","C"): 2.7,("B","C"): 1.6,("A","D"): 2.0,("B","D"): 3.0, ("C","D"): 5.0},
-		# }}
 		i= self.model.create_instance(data)
-		results = self.opt.solve(i)
-		usedEdges = self.findUsedEdges(tsp,i)
-		self.controller.updateView(usedEdges)
+		while not finished:
+			results = self.opt.solve(i)
+			usedEdgesCoords,usedSubGraph = self.findUsedEdges(tsp,i)
+			compCon = self.detectSubTours(usedSubGraph)
+			if len(compCon) > 1:
+				compConCoords = self.translateCompConToCoords(compCon,tsp.getVertices())
+				self.controller.colorSubTours(compConCoords)
+				if step:
+					# t = Thread(target = self.waitForNextStep)
+					# t.start()
+					self.waitingForNextStep = True
+					while self.waitingForNextStep:
+						sleep(0.3)
+					print("Yeeeey")
+			else:
+				finished = True
+				self.controller.updateView(usedEdgesCoords,"green")
+
+
+
 
 	def formatTspData(self,tsp):
 		size = tsp.getSize()
@@ -79,11 +96,72 @@ class PESolver:
 
 	def findUsedEdges(self,tsp,instance):
 		vertices = tsp.getVertices()
-		usedEdges = []
+		usedEdgesCoords = []
+		usedSubGraph = [[] for i in range (tsp.getSize())]
 		for e,v in instance.X.items():
 			if v == 1:
-				edge = (vertices[int(e[0])],vertices[int(e[1])])
-				usedEdges.append(edge)
-		return usedEdges
+				print("e: "+str(e))
+				edgeCoords = (vertices[int(e[0])],vertices[int(e[1])])
+				usedEdgesCoords.append(edgeCoords)
+				usedSubGraph[int(e[0])].append(int(e[1]))
+				usedSubGraph[int(e[1])].append(int(e[0]))
+		print(usedSubGraph)
+		return usedEdgesCoords,usedSubGraph
+
+	def detectSubTours(self,subGraph):
+		conComp = 0
+		ind = 0
+		val = [ 0 for k in range(len(subGraph))]
+		comp = []
+		#inval = [ 0 for k in range(len(subGraph))]
+		for k in range(len(subGraph)):
+			if val[k] == 0:
+				inval = []
+				conComp += 1
+				val,inval,ind = self.explore(k,subGraph,val,inval,ind)
+				#inval[val[k]-1]= -inval[val[k]-1]
+				comp.append(inval)
+		print(val,comp,conComp)
+		return comp
+
+
+	def explore(self,k,subGraph,val,inval,ind):
+		ind +=1
+		print("k: "+str(k))
+		print("indice: "+ str(ind))
+		val[k] = ind
+		inval.append(k)
+		#inval[ind-1] = k
+		print("val: " + str(val))
+		print("inval: "+str(inval))
+		for adj in subGraph[k]:
+			if (val[adj] == 0):
+				val,inval,ind = self.explore(adj,subGraph,val,inval,ind)
+		return val,inval,ind
+
+	def translateCompConToCoords(self,compCon,verticesCoords):
+		for i in compCon:
+			for j in range(len(i)):
+				i[j] = verticesCoords[i[j]]
+		return compCon
+
+	def launchThread(self,tsp,step):
+		try:
+			t = Thread(target = self.solveInstance, args=(tsp,step))
+			print("hey")
+			t.start()
+		except:
+			print("Error: unable to start thread")
+
+	def unblock(self):
+		self.waitingForNextStep = False
+
+	# def waitForNextStep(self):
+	# 	self.waitingForNextStep = True
+	# 	while self.waitingForNextStep:
+	# 		sleep(0.3)
+	# 	print("Yeeeey")
+
+
 
 

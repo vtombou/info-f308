@@ -54,7 +54,7 @@ class GUI:
 		self.graphGroupBox = QGroupBox("Graphe")
 		createGraphBtn = QPushButton("Créer le graphe")
 		self.graphSizeCB = QComboBox()
-		self.graphSizeCB.addItems(["3","4","5","10"])
+		self.graphSizeCB.addItems(["3","4","5","6","10"])
 
 		createGraphBtn.clicked.connect(self.onCreateGraphBtnClicked)
 
@@ -75,16 +75,24 @@ class GUI:
 		self.settingsBox.addWidget(self.solverGroupBox)
 
 	def onCreateGraphBtnClicked(self):
+		self.nextStepCnt = 0
 		graphSize = int(self.graphSizeCB.currentText())
 		verticesCoords = self.chrisCanvas.drawGraph(graphSize)
 		self.PECanvas.drawGraph(graphSize)
 		self.controller.updateTSPGraph(verticesCoords)
 
 	def onNextStepPEClicked(self):
-		self.controller.solveInstance()
+		self.nextStepCnt+=1
+		if self.nextStepCnt == 1:
+			self.controller.solveInstance(True)
+		else:
+			self.controller.unblockSolver()
 
-	def updatePE(self,usedEdges):
-		self.PECanvas.drawStep(usedEdges)
+	def updatePE(self,usedEdges,color = "black"):
+		self.PECanvas.drawStep(usedEdges,color)
+
+	def colorSubTours(self,subTours):
+		self.PECanvas.colorSubTour(subTours)
 
 
 

@@ -17,8 +17,14 @@ class Controller:
 	def updateViewPE(self,edges):
 		self.GUI.updatePE(edges)
 
-	def solveInstance(self):
-		self.peSolver.solveInstance(self.TSP)
+	def colorSubTours(self,subTours):
+		self.GUI.colorSubTours(subTours)
 
-	def updateView(self,usedEdges):
-		self.GUI.updatePE(usedEdges)
+	def solveInstance(self,step):
+		self.peSolver.launchThread(self.TSP,step)
+
+	def updateView(self,usedEdges,color = "black"):
+		self.GUI.updatePE(usedEdges,color)
+
+	def unblockSolver(self):
+		self.peSolver.unblock()

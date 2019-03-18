@@ -12,13 +12,14 @@ class TSP:
 		self.tspSize = len(self.vertices)
 
 	def createEdgesCostMat(self):
+		self.edgesCosts = []
 		for i in range(self.tspSize-1):
 			self.edgesCosts.append([randint(1,100) for x in range(i+1)])
 
 	def updateGraph(self,vertices):
 		self.setVertices(vertices)
 		self.createEdgesCostMat()
-		print(self.edgesCosts)
+		#print(self.edgesCosts)
 
 	def getSize(self):
 		return self.tspSize
