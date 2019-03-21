@@ -8,5 +8,4 @@ def main():
 	PESolver(controller)
 	GUI(controller)
 
-
 main()

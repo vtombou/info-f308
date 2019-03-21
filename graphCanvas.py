@@ -1,8 +1,10 @@
 from PyQt5.QtWidgets import QGraphicsView,QGraphicsScene
 from PyQt5.QtGui import QPen,QBrush,QColor
 from PyQt5.QtCore import Qt
+from PyQt5 import QtTest
 from math import sin,cos,radians
 from random import randint
+
 
 class GraphCanvas(QGraphicsView):
 	def __init__(self,width,height):
@@ -43,7 +45,8 @@ class GraphCanvas(QGraphicsView):
 
 		self.scene.update()
 
-	def colorSubTour(self,subTours):
+	def colorSubTour(self,subTours,step):
+		print("hello")
 		self.scene.clear()
 		pen = QPen()
 		pen.setWidth(2)
@@ -53,7 +56,9 @@ class GraphCanvas(QGraphicsView):
 			for i in range(len(subTour)-1):
 				self.scene.addLine(subTour[i][0],subTour[i][1],subTour[i+1][0],subTour[i+1][1],pen)
 			self.scene.addLine(subTour[-1][0], subTour[-1][1], subTour[0][0], subTour[0][1],pen)
-
+		if not step:
+			QtTest.QTest.qWait(2000)
+		print("bye")
 
 
 	def drawVertices(self):

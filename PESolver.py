@@ -78,6 +78,7 @@ class PESolver:
 				finished = True
 				#self.controller.updateView(usedEdgesCoords,"green")
 				mainQueue.put(("self.updateView",usedEdgesCoords,"green"))
+				mainQueue.put(None)
 
 
 
@@ -110,12 +111,6 @@ class PESolver:
 					print("("+str(comp[i])+","+str(comp[j])+")")
 					expr+= self.i.X[(str(comp[i]),str(comp[j]))]
 			self.i.c.add(expr <= len(comp)-1)
-
-
-
-
-
-
 
 
 	def findUsedEdges(self,tsp,instance):

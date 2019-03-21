@@ -38,14 +38,15 @@ class GUI:
 
 		nextStepBtnCh = QPushButton("Etape suivante christophides")
 		nextStepBtnPE = QPushButton("Etape suivante PE")
-		runComplete = QPushButton("Run")
+		runPE = QPushButton("Run PE")
 
 		nextStepBtnPE.clicked.connect(self.onNextStepPEClicked)
+		runPE.clicked.connect(self.runPEClicked)
 
 		layout = QVBoxLayout()
 		layout.addWidget(nextStepBtnCh)
 		layout.addWidget(nextStepBtnPE)
-		layout.addWidget(runComplete)
+		layout.addWidget(runPE)
 		layout.setSpacing(5)
 		layout.addStretch(1)
 		self.solverGroupBox.setLayout(layout)
@@ -86,13 +87,16 @@ class GUI:
 		if self.nextStepCnt == 1:
 			self.controller.solveInstance(True)
 		else:
-			self.controller.unblockSolver()
+			self.controller.unblockSolver(True)
+
+	def runPEClicked(self):
+		self.controller.solveInstance(False)
 
 	def updatePE(self,usedEdges,color = "black"):
 		self.PECanvas.drawStep(usedEdges,color)
 
-	def colorSubTours(self,subTours):
-		self.PECanvas.colorSubTour(subTours)
+	def colorSubTours(self,subTours,step):
+		self.PECanvas.colorSubTour(subTours,step)
 
 
 
