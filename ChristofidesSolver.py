@@ -1,67 +1,124 @@
 import networkx as nx
 import networkx.algorithms.approximation as pm
+from TSP import TSP
 
+def graphe_PE(netW, n):
+    graphe = netW.Graph()
 
-#1- création d'un graphe G connexe et triangulaire
-G = nx.Graph()
-#1.1-Initialisation des sommets
-nodes = range(5)
-for i in nodes:  
-    G.add_node(i)
-#1.2-Initialisation des aretes
-G.add_edge(0,1, weight=1 )
-G.add_edge(0,3, weight=2 )
-G.add_edge(1,2, weight=2 )
-G.add_edge(0,2, weight=1 )
-G.add_edge(1,3, weight=1 )
-G.add_edge(1,4, weight=1 )
-G.add_edge(0,4, weight=1 )
-G.add_edge(2,3, weight=1 )
-G.add_edge(2,4, weight=1 )
-G.add_edge(3,4, weight=1 )
+    # Initialisation TSP
+    tsp = TSP()
+    tsp.setVertices(range(n))
+    tsp.createEdgesCostMat()
 
+    #Initialisation du graphe
+    nodes = range( tsp.getSize())   #ensemble de sommets
+    matriceCost = tsp.getCostMat()   #matrice des couts
+    for i in range( len(nodes) -1):
+        for j in range(i + 1):
+            graphe.add_node(i)
+            graphe.add_edge(i, j, weight=matriceCost[i][j])
 
+    return graphe
 
-#Construction d'un MST de G
+def graphe_impairs(netW, graphe, mst):
+    """
+    Cette fonction retourne un sous-graphe de 'graphe' induit par l'ensemble des sommets de dégré impairs de 'mst'
+    :params netW, graphe, mst:
+    :return:
+    """
+    grapheI = netW.Graph()
+    #construction de l'ensemble de sommets
+    for i in mst.nodes():
+        if mst.degree[i] % 2 != 0:
+            grapheI.add_node(i)
+    #construction de l'ensemble d'aretes
+    for arete in graphe.edges():
+        if arete[0] in grapheI.nodes and arete[1] in grapheI.nodes:
+            grapheI.add_edge(*arete)
+
+    return grapheI
+
+def euler_circ(netW, graphe):
+    """
+    Cette fonction prend en paramètre un graphe et retourne un tuple constitué de la liste d'aretes et
+    la liste de sommets dans l'ordre de parcours du circuit euleurien; ou -1 si le graphe n'est euleurian.
+    :param netW:
+    :param graphe:
+    :return:
+    """
+    if netW.is_eulerian(graphe):
+        aretes_euler = list(netW.eulerian_circuit(graphe))
+        sommets_euler = [aretes_euler[0][0]]
+        for arete in aretes_euler:
+            for sommet in arete:
+                if sommet != sommets_euler[-1]:
+                    sommets_euler.append(sommet)
+        return aretes_euler, sommets_euler
+    else :
+        return -1, -1
+
+def halmiton_euler(list_sommets):
+    """
+    Cette fonction prend en paramètre une liste de sommets d'un circuit d'euler et retourne la
+    liste de sommets du circuit Hamiltonien associé
+    :param list_sommets:
+    :return:
+    """
+    if list_sommets != -1 :
+        hamilton, visites = [], []
+        for i in range(0, len(list_sommets)):
+            if sommets_euler[i] not in visites or i == len(list_sommets) - 1:
+                visites.append(list_sommets[i])
+                hamilton.append(list_sommets[i])
+        return hamilton
+    else :
+        return -1
+
+def multi_graphe(netW, mst, cp):
+    """
+    Cette fonction retourne un multigraphe construit a partir d'un MST et de son couplage parfait de poid minimal.
+    :param netW:
+    :param mst:
+    :param cp:
+    :return:
+    """
+    graphe = netW.Graph()
+    graphe.add_nodes_from(MST.nodes())
+    graphe.add_edges_from(MST.edges())
+    graphe.add_edges_from(list(cp))
+
+    return graphe
+
+"""
+*******************************
+*     Programme Principal     *      
+*******************************
+"""
+# 1- création d'un graphe G connexe et triangulaire
+G = graphe_PE(nx, 10)
+
+#2- Construction d'un MST de G
 MST = nx.minimum_spanning_tree(G)
 
-#Construction du sous graphe M_Impairs induit par l'ensemble des sommets de dégrée impair
-MImpairs = nx.Graph()
-for i in MST.nodes():
-    if MST.degree[i]%2 != 0 :
-        MImpairs.add_node(i)
-        
-for arete in G.edges():
-    if arete[0] in MImpairs.nodes and arete[1] in MImpairs.nodes :
-        MImpairs.add_edge(*arete)
+#3- Construction du sous graphe MImpairs de G, induit par l'ensemble des sommets de dégré impair du MST
+MImpairs = graphe_impairs(nx, G, MST)
 
- 
-#construction d'un couplage parfait M de poids minimum de MImpairs
-M = pm.min_maximal_matching(MImpairs)   #retourne un set de tuples d'aretes
+#4- construction d'un couplage parfait CP de poids minimum de MImpairs
+CP = pm.min_maximal_matching(MImpairs)  # retourne un set de tuples d'aretes
 
-#On définit un multigraphe H à partir des arêtes issues de  M et MST
-H = nx.Graph()
-H.add_nodes_from( MST.nodes())
-H.add_edges_from(MST.edges() )
-H.add_edges_from(list(M))
- 
-#Trouver un cycle eulérien dans M
-E = nx.eulerize(H) #Transforms a graph H into an Eulerian multi-graph
+#5- On définit un multigraphe H à partir des arêtes issues de  CP et MST
+H = multi_graphe(nx, MST, CP)
 
-#Transformer le cycle eulérien en un cycle hamiltonien en supprimant les éventuels passages en double sur certains sommets.
-#**********************************
+#6- Trouver un cycle eulérien dans H
+aretes_cycle_euler , sommets_euler = euler_circ(nx, H)
 
-print("MST OF GRAPH")
-print(MST.edges)
-print(MST.nodes)
-print("Sous Graphe Induit par l'ensemble sommets Impairs")
-print("Sommets de dégré impairs :", MImpairs.nodes)
-print(MImpairs.edges)
-print("MATCHING TUPLES")
-print(M)
-print("UNION GRAPH Des Graphe ( multi-graphe )")
-print(H.edges)
-print(H.nodes)
-print("EULEURIAN Multi-GRAPH")
-print(E.edges)
-print(E.nodes)
+#7- Trouver un cycle Halmitonien de
+hamilton = halmiton_euler(sommets_euler)
+
+#Affichage resultat
+print("Euleurian circuit of E")
+print(aretes_cycle_euler)
+print(sommets_euler)
+
+print("Halmitonian circuit of E")
+print(hamilton)
