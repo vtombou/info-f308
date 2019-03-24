@@ -101,10 +101,14 @@ class GUI:
 
 	def onNextStepChClicked(self):
 		self.nextStepCntCh += 1
-		if self.nextStepCntCh !=1 and self.nextStepCnt!= 3:
+		print(self.nextStepCntCh)
+		if self.nextStepCntCh !=1 and self.nextStepCntCh!= 3 and self.nextStepCntCh!=5:
 			self.controller.unblockChristofides(True)
-		elif self.nextStepCnt == 3:
-			self.PECanvas.oddVSubGraph()
+		elif self.nextStepCntCh == 3:
+			vertices = self.controller.getVertices()
+			self.chrisCanvas.oddVSubGraph(vertices)
+		elif self.nextStepCntCh == 5:
+			self.chrisCanvas.eulerian()
 		else:
 			self.controller.solveChristofides(True)
 
@@ -114,7 +118,8 @@ class GUI:
 	def colorSubTours(self,subTours,step):
 		self.PECanvas.colorSubTour(subTours,step)
 
-	def updateChristofides(self,):
+	def updateChristofides(self,arg):
+		self.chrisCanvas.updateChristofides(self.nextStepCntCh,arg)
 
 
 

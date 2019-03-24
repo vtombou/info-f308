@@ -79,29 +79,34 @@ class GraphCanvas(QGraphicsView):
 #################################################################################################################
 
 	def updateChristofides(self,*args):
+		print("args[0] "+str(args[0]))
 		step = self.chrisSteps[args[0]]
 		args = args[1:]
-		eval(step + "*args")
+		eval(step + "(*args)")
 
 	def colorMST(self,MST):
 		self.MST = MST
 		self.drawEdges(MST,Qt.blue)
 
 	def colorOddVertices(self,oddVertices):
-		self.oddVertices = oddVertices
+		self.oVertices = []
 		brush = QBrush()
 		brush.setStyle(Qt.SolidPattern)
-		brush.setColor(Qt.yellow)
+		brush.setColor(Qt.darkCyan)
 		for vertice in oddVertices:
+			self.oVertices.append(vertice)
 			self.graphicVertices[vertice].setBrush(brush)
 
-	def oddVSubGraph(self):
+	def oddVSubGraph(self,vertices):
 		pen = QPen()
 		pen.setWidth(2)
-		pen.setColor(Qt.yellow)
-		for i in range(len(self.oddVertices)):
-			for j in range(i,len(self.oddVertices)):
-				self.scene.addLine(self.oddVertices[i][0],self.oddVertices[i][1],self.oddVertices[j][0],self.oddVertices[j][1],pen)
+		pen.setColor(Qt.darkCyan)
+		self.scene.clear()
+		self.drawGraph(self.verticesNb)
+		self.colorOddVertices(self.oVertices)
+		for i in range(len(self.oVertices)):
+			for j in range(i,len(self.oVertices)):
+				self.scene.addLine(vertices[self.oVertices[i]][0],vertices[self.oVertices[i]][1],vertices[self.oVertices[j]][0],vertices[self.oVertices[j]][1],pen)
 
 
 	def perfectMatching(self,PM):
@@ -109,12 +114,18 @@ class GraphCanvas(QGraphicsView):
 		self.drawEdges(PM, Qt.red)
 
 	def eulerian(self):
-		self.drawGraph()
+		self.scene.clear()
+		self.drawGraph(self.verticesNb)
 		self.drawEdges(self.PM,Qt.red)
 		self.drawEdges(self.MST,Qt.blue)
 		QtTest.QTest.qWait(2000)
 		eulerian = self.PM+self.MST
 		self.drawEdges(eulerian,Qt.darkMagenta)
+
+	def hamiltonian(self,edges):
+		self.scene.clear()
+		self.drawGraph(self.verticesNb)
+		self.drawEdges(edges,Qt.green)
 
 	def drawEdges(self,edges, color = Qt.black):
 		pen = QPen()
@@ -122,6 +133,8 @@ class GraphCanvas(QGraphicsView):
 		pen.setColor(color)
 		for edge in edges:
 			self.scene.addLine(edge[0][0],edge[0][1],edge[1][0],edge[1][1],pen)
+		self.scene.update()
+
 
 
 	# def drawGraph(self,vertices,edges):

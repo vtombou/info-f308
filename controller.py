@@ -17,7 +17,6 @@ class Controller:
 	def setChristofidesSolver(self,chSolver):
 		self.chSolver = chSolver
 
-
 	def updateTSPGraph(self,vertices):
 		self.TSP.updateGraph(vertices)
 
@@ -52,7 +51,7 @@ class Controller:
 		args = items[1:]+(step,)
 		eval(fct + "(*args)")
 
-	def solverChristofides(self,step):
+	def solveChristofides(self,step):
 		isStep = False
 		items = []
 		self.chQueue = queue.Queue()
@@ -61,7 +60,7 @@ class Controller:
 			items = self.chQueue.get()
 			try:
 				fct = items[0]
-				args = items[1:] + (step,)
+				args = items[1:]
 				eval(fct + "(*args)")
 			except:
 				pass
@@ -71,5 +70,11 @@ class Controller:
 		self.chSolver.unblock()
 		items = self.chQueue.get()
 		fct = items[0]
-		args = items[1:]+(step,)
+		args = items[1:]
 		eval(fct + "(*args)")
+
+	def updateChristofides(self,arg):
+		self.GUI.updateChristofides(arg)
+
+	def getVertices(self):
+		return self.TSP.getVertices()

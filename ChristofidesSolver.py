@@ -1,6 +1,7 @@
 import networkx as nx
 import networkx.algorithms.approximation as pm
 from threading import Thread
+from time import sleep
 from TSP import TSP
 
 
@@ -20,9 +21,9 @@ class ChSolver:
         matriceCost = tsp.getCostMat()  # matrice des couts
         for i in range(size):
             graphe.add_node(i)
-            for j in range(i,size):
+            for j in range(i+1,size):
                 graphe.add_edge(i, j, weight=matriceCost[j-1][i])
-                graphe.add_edge(j,i, weight = matriceCost[j-1][i])
+#                graphe.add_edge(j,i, weight = matriceCost[j-1][i])
         return graphe
 
     def graphe_impairs(self,graphe, mst):
@@ -101,21 +102,27 @@ class ChSolver:
         *******************************
         """
         # 1- création d'un graphe G connexe et triangulaire
-        G = self.graphe_PE(nx, tsp)
+        G = self.graphe_PE(tsp)
 
         # 2- Construction d'un MST de G
         MST = nx.minimum_spanning_tree(G)
-        chQueue.put("self.updateChristofides",MST)
-        print(MST)
+        edgesCoords = self.changeToCoordsEdges(tsp,MST.edges)
+        chQueue.put(("self.updateChristofides",edgesCoords))
 
+        if step:
+            self.block()
         # 3- Construction du sous graphe MImpairs de G, induit par l'ensemble des sommets de dégré impair du MST
-        MImpairs = self.graphe_impairs(nx, G, MST)
-        chQueue.put("self.updateChristofides",MImpairs)
-
+        MImpairs = self.graphe_impairs(G, MST)
+        chQueue.put(("self.updateChristofides",MImpairs))
+        if step:
+            self.block()
         # 4- construction d'un couplage parfait CP de poids minimum de MImpairs
         CP = pm.min_maximal_matching(MImpairs)  # retourne un set de tuples d'aretes
-        chQueue.put("self.updateChristofides", CP)
+        edgesCoords = self.changeToCoordsEdges(tsp,CP)
+        chQueue.put(("self.updateChristofides", edgesCoords))
 
+        if step:
+            self.block()
         # 5- On définit un multigraphe H à partir des arêtes issues de  CP et MST
         H = self.multi_graphe(MST, CP)
 
@@ -124,11 +131,37 @@ class ChSolver:
 
         # 7- Trouver un cycle Halmitonien de
         hamilton = self.halmiton_euler(sommets_euler)
+        hamiltonEdges = self.verticesToEdges(tsp,hamilton)
+        chQueue.put(("self.updateChristofides",hamiltonEdges))
 
 
-def launchThread(self, tsp, chQueue, step):
-    try:
-        t = Thread(target=self.solve, args=(tsp, chQueue, step))
-        t.start()
-    except:
-        print("Error: unable to start thread")
+    def launchThread(self, tsp, chQueue, step):
+        try:
+            t = Thread(target=self.solve, args=(tsp, chQueue, step))
+            t.start()
+        except:
+            print("Error: unable to start thread")
+
+    def block(self):
+        self.waitingForNextStep = True
+        while self.waitingForNextStep:
+            sleep(0.3)
+
+    def unblock(self):
+        self.waitingForNextStep = False
+
+    def changeToCoordsEdges(self,tsp,edges):
+        vertices = tsp.getVertices()
+        coordEdges = []
+        for e in edges:
+            coordEdges.append((vertices[e[0]],vertices[e[1]]))
+        return coordEdges
+
+    def verticesToEdges(self,tsp,vertices):
+        v = tsp.getVertices()
+        edges =[]
+        for i in range(len(vertices)-1):
+            edges.append((v[vertices[i]],v[vertices[i+1]]))
+        edges.append((v[vertices[-1]],v[vertices[0]]))
+        return edges
+
