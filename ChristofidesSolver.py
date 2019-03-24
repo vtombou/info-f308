@@ -1,17 +1,19 @@
 import networkx as nx
 import networkx.algorithms.approximation as pm
+from threading import Thread
 from TSP import TSP
 
 
-class Christofides:
+class ChSolver:
 
-    def graphe_PE(netW, n):
-        graphe = netW.Graph()
+    def __init__(self,controller):
+        self.controller = controller
+        self.controller.setChristofidesSolver(self)
+
+    def graphe_PE(self,tsp):
+        graphe = nx.Graph()
 
         # Initialisation TSP
-        tsp = TSP()
-        tsp.setVertices(range(n))
-        tsp.createEdgesCostMat()
 
         # Initialisation du graphe
         nodes = range(tsp.getSize())  # ensemble de sommets
@@ -23,13 +25,13 @@ class Christofides:
 
         return graphe
 
-    def graphe_impairs(netW, graphe, mst):
+    def graphe_impairs(self,graphe, mst):
         """
         Cette fonction retourne un sous-graphe de 'graphe' induit par l'ensemble des sommets de dégré impairs de 'mst'
         :params netW, graphe, mst:
         :return:
         """
-        grapheI = netW.Graph()
+        grapheI = nx.Graph()
         # construction de l'ensemble de sommets
         for i in mst.nodes():
             if mst.degree[i] % 2 != 0:
@@ -41,7 +43,7 @@ class Christofides:
 
         return grapheI
 
-    def euler_circ(netW, graphe):
+    def euler_circ(self,graphe):
         """
         Cette fonction prend en paramètre un graphe et retourne un tuple constitué de la liste d'aretes et
         la liste de sommets dans l'ordre de parcours du circuit euleurien; ou -1 si le graphe n'est euleurian.
@@ -49,8 +51,8 @@ class Christofides:
         :param graphe:
         :return:
         """
-        if netW.is_eulerian(graphe):
-            aretes_euler = list(netW.eulerian_circuit(graphe))
+        if nx.is_eulerian(graphe):
+            aretes_euler = list(nx.eulerian_circuit(graphe))
             sommets_euler = [aretes_euler[0][0]]
             for arete in aretes_euler:
                 for sommet in arete:
@@ -60,7 +62,7 @@ class Christofides:
         else:
             return -1, -1
 
-    def multi_graphe(netW, mst, cp):
+    def multi_graphe(self,mst, cp):
         """
         Cette fonction retourne un multigraphe construit a partir d'un MST et de son couplage parfait de poid minimal.
         :param netW:
@@ -68,14 +70,14 @@ class Christofides:
         :param cp:
         :return:
         """
-        graphe = netW.Graph()
+        graphe = nx.Graph()
         graphe.add_nodes_from(mst.nodes())
         graphe.add_edges_from(mst.edges())
         graphe.add_edges_from(list(cp))
 
         return graphe
 
-    def halmiton_euler(list_sommets):
+    def halmiton_euler(self,list_sommets):
         """
         Cette fonction prend en paramètre une liste de sommets d'un circuit d'euler et retourne la
         liste de sommets du circuit Hamiltonien associé
@@ -92,31 +94,41 @@ class Christofides:
         else:
             return -1
 
-    def solve(self, netW, n):
+    def solve(self,tsp,chQueue,step):
         """
         *******************************
         *     Programme Principal     *
         *******************************
         """
         # 1- création d'un graphe G connexe et triangulaire
-        G = self.graphe_PE(netW, n)
+        G = self.graphe_PE(nx, tsp)
 
         # 2- Construction d'un MST de G
-        MST = netW.minimum_spanning_tree(G)
+        MST = nx.minimum_spanning_tree(G)
+        chQueue.put("self.updateChristofides",MST)
+        print(MST)
 
         # 3- Construction du sous graphe MImpairs de G, induit par l'ensemble des sommets de dégré impair du MST
         MImpairs = self.graphe_impairs(nx, G, MST)
+        chQueue.put("self.updateChristofides",MImpairs)
 
         # 4- construction d'un couplage parfait CP de poids minimum de MImpairs
         CP = pm.min_maximal_matching(MImpairs)  # retourne un set de tuples d'aretes
+        chQueue.put("self.updateChristofides", CP)
 
         # 5- On définit un multigraphe H à partir des arêtes issues de  CP et MST
-        H = self.multi_graphe(netW, MST, CP)
+        H = self.multi_graphe(MST, CP)
 
         # 6- Trouver un cycle eulérien dans H
-        aretes_cycle_euler, sommets_euler = self.euler_circ(netW, H)
+        aretes_cycle_euler, sommets_euler = self.euler_circ(H)
 
         # 7- Trouver un cycle Halmitonien de
         hamilton = self.halmiton_euler(sommets_euler)
 
-        return hamilton
+
+def launchThread(self, tsp, chQueue, step):
+    try:
+        t = Thread(target=self.solve, args=(tsp, chQueue, step))
+        t.start()
+    except:
+        print("Error: unable to start thread")

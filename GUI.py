@@ -37,16 +37,20 @@ class GUI:
 		self.solverGroupBox = QGroupBox("Solver")
 
 		nextStepBtnCh = QPushButton("Etape suivante christophides")
+		runCh = QPushButton("Run christofides")
 		nextStepBtnPE = QPushButton("Etape suivante PE")
 		runPE = QPushButton("Run PE")
 
 		nextStepBtnPE.clicked.connect(self.onNextStepPEClicked)
 		runPE.clicked.connect(self.runPEClicked)
+		nextStepBtnCh.clicked.connect(self.onNextStepChClicked)
+		runCh.clicked.connect(self.runChClicked)
 
 		layout = QVBoxLayout()
-		layout.addWidget(nextStepBtnCh)
 		layout.addWidget(nextStepBtnPE)
 		layout.addWidget(runPE)
+		layout.addWidget(nextStepBtnCh)
+		layout.addWidget(runCh)
 		layout.setSpacing(5)
 		layout.addStretch(1)
 		self.solverGroupBox.setLayout(layout)
@@ -54,15 +58,14 @@ class GUI:
 	def createGraphGroupBox(self):
 		self.graphGroupBox = QGroupBox("Graphe")
 		createGraphBtn = QPushButton("Créer le graphe")
-		self.graphSizeCB = QComboBox()
-		self.graphSizeCB.addItems(["3","4","5","6","10"])
+		self.sizeBox = QLineEdit("Taille du graphe")
 
 		createGraphBtn.clicked.connect(self.onCreateGraphBtnClicked)
 
 
 		layout = QVBoxLayout()
 		layout.setSpacing(5)
-		layout.addWidget(self.graphSizeCB)
+		layout.addWidget(self.sizeBox)
 		layout.addWidget(createGraphBtn)
 		layout.addStretch(1)
 		self.graphGroupBox.setLayout(layout)
@@ -77,7 +80,8 @@ class GUI:
 
 	def onCreateGraphBtnClicked(self):
 		self.nextStepCnt = 0
-		graphSize = int(self.graphSizeCB.currentText())
+		self.nextStepCntCh = 0
+		graphSize = int(self.sizeBox.text())
 		verticesCoords = self.chrisCanvas.drawGraph(graphSize)
 		self.PECanvas.drawGraph(graphSize)
 		self.controller.updateTSPGraph(verticesCoords)
@@ -92,11 +96,25 @@ class GUI:
 	def runPEClicked(self):
 		self.controller.solveInstance(False)
 
+	def runChClicked(self):
+		self.controller.solveInstance(False)
+
+	def onNextStepChClicked(self):
+		self.nextStepCntCh += 1
+		if self.nextStepCntCh !=1 and self.nextStepCnt!= 3:
+			self.controller.unblockChristofides(True)
+		elif self.nextStepCnt == 3:
+			self.PECanvas.oddVSubGraph()
+		else:
+			self.controller.solveChristofides(True)
+
 	def updatePE(self,usedEdges,color = "black"):
 		self.PECanvas.drawStep(usedEdges,color)
 
 	def colorSubTours(self,subTours,step):
 		self.PECanvas.colorSubTour(subTours,step)
+
+	def updateChristofides(self,):
 
 
 
