@@ -16,13 +16,13 @@ class ChSolver:
         # Initialisation TSP
 
         # Initialisation du graphe
-        nodes = range(tsp.getSize())  # ensemble de sommets
+        size = tsp.getSize()  # ensemble de sommets
         matriceCost = tsp.getCostMat()  # matrice des couts
-        for i in range(len(nodes) - 1):
-            for j in range(i + 1):
-                graphe.add_node(i)
-                graphe.add_edge(i, j, weight=matriceCost[i][j])
-
+        for i in range(size):
+            graphe.add_node(i)
+            for j in range(i,size):
+                graphe.add_edge(i, j, weight=matriceCost[j-1][i])
+                graphe.add_edge(j,i, weight = matriceCost[j-1][i])
         return graphe
 
     def graphe_impairs(self,graphe, mst):
