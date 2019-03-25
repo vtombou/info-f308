@@ -40,17 +40,21 @@ class GUI:
 		runCh = QPushButton("Run christofides")
 		nextStepBtnPE = QPushButton("Etape suivante PE")
 		runPE = QPushButton("Run PE")
+		self.delayEdit = QLineEdit("Délais run")
+
 
 		nextStepBtnPE.clicked.connect(self.onNextStepPEClicked)
 		runPE.clicked.connect(self.runPEClicked)
 		nextStepBtnCh.clicked.connect(self.onNextStepChClicked)
 		runCh.clicked.connect(self.runChClicked)
+		self.delayEdit.returnPressed.connect(self.changeDelay)
 
 		layout = QVBoxLayout()
 		layout.addWidget(nextStepBtnPE)
 		layout.addWidget(runPE)
 		layout.addWidget(nextStepBtnCh)
 		layout.addWidget(runCh)
+		layout.addWidget(self.delayEdit)
 		layout.setSpacing(5)
 		layout.addStretch(1)
 		self.solverGroupBox.setLayout(layout)
@@ -81,6 +85,7 @@ class GUI:
 	def onCreateGraphBtnClicked(self):
 		self.nextStepCnt = 0
 		self.nextStepCntCh = 0
+		self.step = True
 		graphSize = int(self.sizeBox.text())
 		verticesCoords = self.chrisCanvas.drawGraph(graphSize)
 		self.PECanvas.drawGraph(graphSize)
@@ -97,18 +102,23 @@ class GUI:
 		self.controller.solveInstance(False)
 
 	def runChClicked(self):
-		self.controller.solveInstance(False)
+		self.step = False
+		self.controller.solveChristofides(False)
+
 
 	def onNextStepChClicked(self):
 		self.nextStepCntCh += 1
 		print(self.nextStepCntCh)
-		if self.nextStepCntCh !=1 and self.nextStepCntCh!= 3 and self.nextStepCntCh!=5:
+		if self.nextStepCntCh != 1:
 			self.controller.unblockChristofides(True)
-		elif self.nextStepCntCh == 3:
-			vertices = self.controller.getVertices()
-			self.chrisCanvas.oddVSubGraph(vertices)
-		elif self.nextStepCntCh == 5:
-			self.chrisCanvas.eulerian()
+
+		# if self.nextStepCntCh !=1 and self.nextStepCntCh!= 3 and self.nextStepCntCh!=5:
+		# 	self.controller.unblockChristofides(True)
+		# elif self.nextStepCntCh == 3:
+		# 	vertices = self.controller.getVertices()
+		# 	self.chrisCanvas.oddVSubGraph(vertices)
+		# elif self.nextStepCntCh == 5:
+		# 	self.chrisCanvas.eulerian()
 		else:
 			self.controller.solveChristofides(True)
 
@@ -119,7 +129,18 @@ class GUI:
 		self.PECanvas.colorSubTour(subTours,step)
 
 	def updateChristofides(self,arg):
-		self.chrisCanvas.updateChristofides(self.nextStepCntCh,arg)
+		if not self.step:
+			self.nextStepCntCh +=1
+		self.chrisCanvas.updateChristofides(self.step,self.nextStepCntCh,arg)
+
+	def changeDelay(self):
+		try:
+			delay = int(self.delayEdit.text()) * 1000
+			print(delay)
+			self.PECanvas.updateDelay(delay)
+			self.ChCanvas.updateDelay(delay)
+		except:
+			pass
 
 
 

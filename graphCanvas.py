@@ -15,6 +15,7 @@ class GraphCanvas(QGraphicsView):
 		self.scene = QGraphicsScene(0,0,width,height -80)
 		self.setScene(self.scene)
 		self.chrisSteps = {1: "self.colorMST",2: "self.colorOddVertices",3: "self.oddVSubGraph",4: "self.perfectMatching", 5: "self.eulerian", 6: "self.hamiltonian"}
+		self.delay = 2000
 
 	def drawGraph(self,verticesNb):
 		self.scene.clear()
@@ -59,7 +60,7 @@ class GraphCanvas(QGraphicsView):
 				self.scene.addLine(subTour[i][0],subTour[i][1],subTour[i+1][0],subTour[i+1][1],pen)
 			self.scene.addLine(subTour[-1][0], subTour[-1][1], subTour[0][0], subTour[0][1],pen)
 		if not step:
-			QtTest.QTest.qWait(2000)
+			QtTest.QTest.qWait(self.delay)
 
 
 	def drawVertices(self):
@@ -78,7 +79,9 @@ class GraphCanvas(QGraphicsView):
 #
 #################################################################################################################
 
-	def updateChristofides(self,*args):
+	def updateChristofides(self,step,*args):
+		if not step:
+			QtTest.QTest.qWait(self.delay)
 		print("args[0] "+str(args[0]))
 		step = self.chrisSteps[args[0]]
 		args = args[1:]
@@ -92,7 +95,7 @@ class GraphCanvas(QGraphicsView):
 		self.oVertices = []
 		brush = QBrush()
 		brush.setStyle(Qt.SolidPattern)
-		brush.setColor(Qt.darkCyan)
+		brush.setColor(Qt.cyan)
 		for vertice in oddVertices:
 			self.oVertices.append(vertice)
 			self.graphicVertices[vertice].setBrush(brush)
@@ -100,7 +103,7 @@ class GraphCanvas(QGraphicsView):
 	def oddVSubGraph(self,vertices):
 		pen = QPen()
 		pen.setWidth(2)
-		pen.setColor(Qt.darkCyan)
+		pen.setColor(Qt.cyan)
 		self.scene.clear()
 		self.drawGraph(self.verticesNb)
 		self.colorOddVertices(self.oVertices)
@@ -113,14 +116,14 @@ class GraphCanvas(QGraphicsView):
 		self.PM = PM
 		self.drawEdges(PM, Qt.red)
 
-	def eulerian(self):
+	def eulerian(self,PM):
 		self.scene.clear()
 		self.drawGraph(self.verticesNb)
 		self.drawEdges(self.PM,Qt.red)
 		self.drawEdges(self.MST,Qt.blue)
 		QtTest.QTest.qWait(2000)
 		eulerian = self.PM+self.MST
-		self.drawEdges(eulerian,Qt.darkMagenta)
+		self.drawEdges(eulerian,Qt.magenta)
 
 	def hamiltonian(self,edges):
 		self.scene.clear()
@@ -141,7 +144,8 @@ class GraphCanvas(QGraphicsView):
 	# 	for vertice in vertices:
 
 
-
+	def updateDelay(self,delay):
+		self.delay = delay
 
 
 
