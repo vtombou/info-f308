@@ -40,6 +40,7 @@ class GUI:
 		runCh = QPushButton("Run christofides")
 		nextStepBtnPE = QPushButton("Etape suivante PE")
 		runPE = QPushButton("Run PE")
+		runBoth = QPushButton("Run vs")
 		self.delayEdit = QLineEdit("Délais run")
 
 
@@ -47,6 +48,7 @@ class GUI:
 		runPE.clicked.connect(self.runPEClicked)
 		nextStepBtnCh.clicked.connect(self.onNextStepChClicked)
 		runCh.clicked.connect(self.runChClicked)
+		runBoth.clicked.connect(self.runBothClicked)
 		self.delayEdit.returnPressed.connect(self.changeDelay)
 
 		layout = QVBoxLayout()
@@ -54,6 +56,7 @@ class GUI:
 		layout.addWidget(runPE)
 		layout.addWidget(nextStepBtnCh)
 		layout.addWidget(runCh)
+		layout.addWidget(runBoth)
 		layout.addWidget(self.delayEdit)
 		layout.setSpacing(5)
 		layout.addStretch(1)
@@ -105,6 +108,10 @@ class GUI:
 		self.step = False
 		self.controller.solveChristofides(False)
 
+	def runBothClicked(self):
+		self.step = False
+		self.controller.solveBoth()
+
 
 	def onNextStepChClicked(self):
 		self.nextStepCntCh += 1
@@ -125,7 +132,7 @@ class GUI:
 	def updatePE(self,usedEdges,color = "black"):
 		self.PECanvas.drawStep(usedEdges,color)
 
-	def colorSubTours(self,subTours,step):
+	def colorSubTours(self,subTours,step = False):
 		self.PECanvas.colorSubTour(subTours,step)
 
 	def updateChristofides(self,arg):

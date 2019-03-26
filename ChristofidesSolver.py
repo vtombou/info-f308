@@ -33,7 +33,6 @@ class ChSolver:
 		:return:
 		"""
 		matriceCost = tsp.getCostMat()
-		print(matriceCost)
 		grapheI = nx.Graph()
 		oddVertices = []
 		# construction de l'ensemble de sommets
@@ -44,7 +43,6 @@ class ChSolver:
 		# construction de l'ensemble d'aretes
 		for i in range(len(oddVertices)):
 			for j in range(i+1,len(oddVertices)):
-				print("cost "+str(oddVertices[i])+"-"+str(oddVertices[j])+": " +str(matriceCost[oddVertices[j]-1][oddVertices[i]]))
 				grapheI.add_edge(oddVertices[i],oddVertices[j], weight=-matriceCost[oddVertices[j]-1][oddVertices[i]])
 
 		return grapheI
@@ -58,7 +56,6 @@ class ChSolver:
 		:return:
 		"""
 		if nx.is_eulerian(graphe):
-			print("eulérien")
 			aretes_euler = list(nx.eulerian_circuit(graphe))
 			sommets_euler = [aretes_euler[0][0]]
 			for arete in aretes_euler:
@@ -67,7 +64,6 @@ class ChSolver:
 						sommets_euler.append(sommet)
 			return aretes_euler, sommets_euler
 		else:
-			print("non eulérien")
 			return -1, -1
 
 	def multi_graphe(self,mst, cp):
@@ -78,7 +74,7 @@ class ChSolver:
 		:param cp:
 		:return:
 		"""
-		graphe = nx.Graph()
+		graphe = nx.MultiGraph()
 		graphe.add_nodes_from(mst.nodes())
 		graphe.add_edges_from(mst.edges())
 		graphe.add_edges_from(list(cp))
@@ -108,6 +104,7 @@ class ChSolver:
 		*     Programme Principal     *
 		*******************************
 		"""
+		print("In chris thread")
 		# 1- création d'un graphe G connexe et triangulaire
 		G = self.graphe_PE(tsp)
 
@@ -129,7 +126,6 @@ class ChSolver:
 		if step:
 			self.block()
 		# 4- construction d'un couplage parfait CP de poids minimum de MImpairs
-		print(MImpairs.edges)
 		CP = nx.max_weight_matching(MImpairs,maxcardinality=True)  # retourne un set de tuples d'aretes
 		edgesCoords = self.changeToCoordsEdges(tsp,CP)
 		chQueue.put(("self.updateChristofides", edgesCoords))
@@ -141,10 +137,7 @@ class ChSolver:
 		if step:
 			self.block()
 		# 5- On définit un multigraphe H à partir des arêtes issues de  CP et MST
-		print(MST.edges)
-		print(CP)
 		H = self.multi_graphe(MST, CP)
-		print(H.edges)
 		# 6- Trouver un cycle eulérien dans H
 		aretes_cycle_euler, sommets_euler = self.euler_circ(H)
 
@@ -153,6 +146,7 @@ class ChSolver:
 		try:
 			hamiltonEdges = self.verticesToEdges(tsp,hamilton)
 			chQueue.put(("self.updateChristofides", hamiltonEdges))
+			chQueue.put(None)
 		except:
 			pass
 

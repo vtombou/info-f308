@@ -78,3 +78,20 @@ class Controller:
 
 	def getVertices(self):
 		return self.TSP.getVertices()
+
+	def solveBoth(self):
+		cnt = 0
+		self.mainQueue = queue.Queue()
+		self.peSolver.launchThread(self.TSP,self.mainQueue,False)
+		self.chSolver.launchThread(self.TSP,self.mainQueue,False)
+		while cnt <2:
+			items = self.mainQueue.get()
+			try:
+				fct = items[0]
+				args = items[1:]
+				print(fct)
+				eval(fct + "(*args)")
+			except:
+				pass
+			if items == None:
+				cnt+=1

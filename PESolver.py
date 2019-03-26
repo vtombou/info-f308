@@ -57,6 +57,7 @@ class PESolver:
 
 
 	def solveInstance(self,tsp,mainQueue,step = False):
+		print("In PE thread")
 		finished = False
 		data = self.formatTspData(tsp)
 		self.i= self.model.create_instance(data)
@@ -124,7 +125,6 @@ class PESolver:
 				usedEdgesCoords.append(edgeCoords)
 				usedSubGraph[int(e[0])].append(int(e[1]))
 				usedSubGraph[int(e[1])].append(int(e[0]))
-		print(usedSubGraph)
 		return usedEdgesCoords,usedSubGraph
 
 	def detectSubTours(self,subGraph):
@@ -140,7 +140,6 @@ class PESolver:
 				val,inval,ind = self.explore(k,subGraph,val,inval,ind)
 				#inval[val[k]-1]= -inval[val[k]-1]
 				comp.append(inval)
-		print(val,comp,conComp)
 		return comp
 
 
